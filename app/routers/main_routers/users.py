@@ -4,14 +4,14 @@ from aiogram.filters import CommandStart
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from models import UsersModel
+from database import UsersModel
 
 router = Router()
 
 @router.message(CommandStart())
 async def start(
     message: Message,
-    session: AsyncSession 
+    session: AsyncSession
 ):
     res = await session.execute(
         select(UsersModel)
