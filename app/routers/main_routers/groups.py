@@ -1,30 +1,41 @@
-from aiogram import Router
-from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram import Router, F
+from aiogram.types import CallbackQuery
+from aiogram.fsm.context import FSMContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from schemas import GroupsBase
-from database import GroupsRepository
+from database import UsersRepository
+from schemas import UsersBase
+from states import GroupReg
 
 router = Router()
 
 
-@router.message(Command('/app'))
-async def app(
-    message: Message,
-    groups_repo: GroupsRepository,
-    user_id: int = 1,
-    games: str = 'dice'
+@router.callback_query(F.data == 'add_group')
+async def add_group(
+    callback: CallbackQuery,
+    state: FSMContext,
+    session: AsyncSession
 ):
-    new_gr = GroupsBase(
-        group_id=message.chat.id,
-        group_name=message.chat.full_name,
-        games=games
+    await callback.answer('add_group')
+
+    user_entity = UsersBase(
+        telegram_id=callback.from_user.id,
+        telegram_username=callback.from_user.username
     )
 
-    res = await groups_repo.create(
-        user_id=user_id,
-        entity=new_gr
+    current_user = UsersRepository(
+        session=session
     )
 
-    return await message.answer('Okey')
+    res = await current_user.create(
+        entity=user_entity
+    )
+
+    await state.set_state(GroupReg.group_name)
+
+    return await callback.message.answer(
+        'название чата:'
+        )
+
+
 

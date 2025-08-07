@@ -1,1 +1,2 @@
 from .main_middleware import DbSessionMiddleware
+from .play_middleware import GroupOnlyMiddleware

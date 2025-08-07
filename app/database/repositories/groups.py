@@ -1,14 +1,14 @@
 from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base_repository import BaseRepository
 from schemas import GroupsBase
-from ..db import get_new_async_session
 from services import GroupsService
 
 class GroupsRepository(BaseRepository[GroupsBase]):
 
-    def __init__(self):
-        self.session = get_new_async_session()
+    def __init__(self, session: AsyncSession):
+        self.session = session
         self.group_service = GroupsService(
             session=self.session
         )
@@ -51,3 +51,13 @@ class GroupsRepository(BaseRepository[GroupsBase]):
     ) -> None:
 
         return 'ok'
+    
+
+    async def get_by_name(
+        self,
+        name: str
+    ) -> Optional[GroupsBase]:
+        
+        return await self.group_service.get_group_by_name(
+            name=name
+        )

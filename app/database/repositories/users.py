@@ -1,28 +1,34 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from .base_repository import BaseRepository
-from models import UsersModel
-from ..db import get_new_async_session
+from schemas import UsersBase
+from services import UsersService
 
-class UsersRepository(BaseRepository[UsersModel]):
+class UsersRepository(BaseRepository[UsersBase]):
 
-    def __init__(self):
-        self.session = get_new_async_session()
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.user_service = UsersService(
+            session = self.session
+        )
 
 
     async def create(
         self, 
-        entity
-    ):
+        entity: UsersBase
+    ) -> UsersBase:
 
-        return 'ok'
+        return await self.user_service.add_user(
+            user=entity
+        )
 
 
  
     async def read(
         self, 
         id: int
-    ):
+    ) -> Optional[UsersBase]:
 
         return 'ok'
 
@@ -30,8 +36,8 @@ class UsersRepository(BaseRepository[UsersModel]):
  
     async def update(
         self, 
-        entity
-    ):
+        entity: UsersBase
+    ) -> UsersBase:
 
         return 'ok'
 
@@ -40,6 +46,6 @@ class UsersRepository(BaseRepository[UsersModel]):
     async def delete(
         self, 
         id: int
-    ):
+    ) -> None:
 
         return 'ok'
