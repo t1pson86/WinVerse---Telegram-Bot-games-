@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 from schemas import UsersBase
 from database.models import UsersModel
@@ -24,15 +25,32 @@ class UsersService():
 
 
         if current_user is None:
+            
             new_user = UsersModel(
                 telegram_id = user.telegram_id,
                 telegram_username = user.telegram_username,
-                creator=True
+                creator=user.creator
             )
 
             self.session.add(new_user)
             await self.session.commit()
+            await self.session.refresh(new_user)
 
             return new_user
+
+        return current_user
+    
+
+    async def get_user_by_name(
+        self,
+        name: str
+    ) -> Optional[UsersBase]:
+        
+        result = await self.session.execute(
+            select(UsersModel)
+            .where(UsersModel.telegram_username==name)
+        )
+
+        current_user = result.scalars().first()
 
         return current_user

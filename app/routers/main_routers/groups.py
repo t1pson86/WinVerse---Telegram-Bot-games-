@@ -1,41 +1,60 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery
-from aiogram.fsm.context import FSMContext
+from aiogram import Router, Bot
+from aiogram.filters import Command
+from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import UsersRepository
-from schemas import UsersBase
-from states import GroupReg
+from middleware import GroupOnlyMiddleware
+from database import GroupsRepository, UsersRepository
+from schemas import GroupsBase, UsersBase
+from keyboards import inl_games
 
 router = Router()
+router.message.middleware(GroupOnlyMiddleware())
 
 
-@router.callback_query(F.data == 'add_group')
-async def add_group(
-    callback: CallbackQuery,
-    state: FSMContext,
+@router.message(Command('start_game'))
+async def start_group(
+    message: Message,
+    bot: Bot,
     session: AsyncSession
-):
-    await callback.answer('add_group')
+) -> str:
+    
+    chat_admins = await bot.get_chat_administrators(message.chat.id)
 
-    user_entity = UsersBase(
-        telegram_id=callback.from_user.id,
-        telegram_username=callback.from_user.username
-    )
+    current_admin = [admin.user.id for admin in chat_admins if admin.status == 'creator'][0]
 
-    current_user = UsersRepository(
+    if message.from_user.id != current_admin:
+        return await message.answer('Может только админ')
+
+    user_repo = UsersRepository(
         session=session
     )
 
-    res = await current_user.create(
+    user_entity = UsersBase(
+        telegram_id=message.from_user.id,
+        telegram_username='@' + message.from_user.username,
+        creator=True
+    )
+
+    current_user = await user_repo.create(
         entity=user_entity
     )
 
-    await state.set_state(GroupReg.group_name)
+    groups_repo = GroupsRepository(
+        session=session
+    )
 
-    return await callback.message.answer(
-        'название чата:'
+    group_entity = GroupsBase(
+        group_id=message.chat.id,
+        group_name='@' + message.chat.username
+    )
+
+    new_group = await groups_repo.create(
+        user_id=message.from_user.id,
+        entity=group_entity
+    )
+
+    return await message.answer(
+        'Начало игры. Чтобы выбрать режим ',
+        reply_markup=inl_games.games_list
         )
-
-
-

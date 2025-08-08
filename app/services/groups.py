@@ -1,9 +1,8 @@
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 
 from schemas import GroupsBase
-from database.models import GroupsModel, UsersModel
+from database.models import GroupsModel
 
 
 class GroupsService():
@@ -17,9 +16,10 @@ class GroupsService():
         user_id: int,
         group: GroupsBase
     ) -> GroupsBase:
+        
         result = await self.session.execute(
             select(GroupsModel)
-            .where(GroupsModel.group_name==group.group_name)
+            .where(GroupsModel.group_id==group.group_id)
             )
 
         current_group = result.scalars().first()
@@ -29,7 +29,6 @@ class GroupsService():
             new_group = GroupsModel(
                 group_id=group.group_id,
                 group_name=group.group_name,
-                games=group.games,
                 user_id=user_id
             )
 
@@ -38,31 +37,22 @@ class GroupsService():
 
             return new_group
         
-        updt_user = await self.session.execute(
-            update(UsersModel)
-            .where(UsersModel.id==current_group.user_id)
-            .values(creator=True)
-        )
-
-        self.session.commit(updt_user)
-        self.session.refresh(updt_user)
         
         return current_group
     
 
-
-    async def get_group_by_name(
+    async def get_group_by_id(
         self,
-        name: str
-    ) -> Optional[GroupsBase]:
-        
+        id: int
+    ):
         result = await self.session.execute(
             select(GroupsModel)
-            .where(GroupsModel.group_name==name)
+            .where(GroupsModel.group_id==id)
         )
 
         current_group = result.scalars().first()
 
         return current_group
+
 
 

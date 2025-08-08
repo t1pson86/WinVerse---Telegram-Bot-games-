@@ -1,1 +1,1 @@
-from .play import get_group_by_name
+from .groups import get_user_by_id

@@ -49,3 +49,13 @@ class UsersRepository(BaseRepository[UsersBase]):
     ) -> None:
 
         return 'ok'
+    
+    
+    async def get_by_name(
+        self,
+        name: str
+    ) -> Optional[UsersBase]:
+        
+        return await self.user_service.get_user_by_name(
+            name=name
+        )

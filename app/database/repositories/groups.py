@@ -32,7 +32,9 @@ class GroupsRepository(BaseRepository[GroupsBase]):
         id: int
     ) -> Optional[GroupsBase]:
 
-        return 'ok'
+        return await self.group_service.get_group_by_id(
+            id = id
+        )
 
 
  
@@ -52,12 +54,3 @@ class GroupsRepository(BaseRepository[GroupsBase]):
 
         return 'ok'
     
-
-    async def get_by_name(
-        self,
-        name: str
-    ) -> Optional[GroupsBase]:
-        
-        return await self.group_service.get_group_by_name(
-            name=name
-        )

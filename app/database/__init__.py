@@ -3,5 +3,7 @@ from .db.base import Base
 from .db.session import get_new_async_session
 from .repositories.groups import GroupsRepository
 from .repositories.users import UsersRepository
+from .repositories.parties import PartiesRepository
 from .models.groups import GroupsModel
 from .models.users import UsersModel
+from .models.parties import PartiesModel
