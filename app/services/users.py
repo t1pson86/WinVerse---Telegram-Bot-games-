@@ -54,3 +54,20 @@ class UsersService():
         current_user = result.scalars().first()
 
         return current_user
+    
+
+    async def get_user_by_telegram_id(
+        self,
+        telegram_id: int
+    ) -> Optional[UsersBase]:
+        
+        result = await self.session.execute(
+            select(UsersModel)
+            .where(UsersModel.telegram_id==telegram_id)
+        )
+
+        current_user = result.scalars().first()
+
+        return current_user
+    
+    

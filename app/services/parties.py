@@ -1,7 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
-from database import PartiesModel
+from database.models import PartiesModel
 from schemas import PartiesBase
 
 class PartiesService():
@@ -31,7 +32,24 @@ class PartiesService():
 
             self.session.add(new_party)
             await self.session.commit()
+            await self.session.refresh(new_party)
 
             return new_party
         
+        return current_party
+    
+    
+
+    async def get_party_id(
+        self,
+        id: int
+    ) -> Optional[PartiesBase]:
+        
+        result = await self.session.execute(
+            select(PartiesModel)
+            .where(PartiesModel.id==id)
+        )
+
+        current_party = result.scalars().first()
+
         return current_party

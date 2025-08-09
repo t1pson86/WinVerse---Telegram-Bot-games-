@@ -50,7 +50,9 @@ async def create_dice_party(
     if not await user_repo.get_by_name(name='@'+message.from_user.username):
         return await message.answer('Введите команду /reg, чтобы можно было создать игру')
 
-    if not await user_repo.get_by_name(name=opponent_telegram_info[1]):
+    opponent_info_id = await user_repo.get_by_name(name=opponent_telegram_info[1])
+
+    if not opponent_info_id:
         return await message.answer(f'Пользователь {opponent_telegram_info[1]} Введите команду /reg, чтобы можно было создать игру')
 
     parties_repo = PartiesRepository(
@@ -58,16 +60,21 @@ async def create_dice_party(
     )
 
     partie_entity = PartiesBase(
-        game_type=
+        game_type=opponent_telegram_info[1][1:],
+        status='accept',
+        creator_id=message.from_user.id,
+        opponent_id=opponent_info_id.telegram_id
     )
 
     current_party = await parties_repo.create(
-        entity=
+        entity=partie_entity
     )
 
     return await message.answer(
         f'Пользователь @{message.from_user.username} предложил игру пользователю {opponent_telegram_info[1]}',
         reply_markup=inl_parties.get_party_menu(
-            party_id=
-        )
+            party_id=current_party.id,
+            creator_id=message.from_user.id,
+            opponent_id=opponent_info_id.telegram_id
+            )
         )

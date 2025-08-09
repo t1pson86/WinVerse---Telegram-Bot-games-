@@ -23,14 +23,15 @@ class PartiesRepository(BaseRepository[PartiesBase]):
             party=entity
         )
 
-
  
     async def read(
         self, 
         id: int
     ) -> Optional[PartiesBase]:
 
-        return 'ok'
+        return await self.partie_service.get_party_id(
+            id=id
+        )
 
 
  

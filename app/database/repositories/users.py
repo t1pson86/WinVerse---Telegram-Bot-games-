@@ -59,3 +59,13 @@ class UsersRepository(BaseRepository[UsersBase]):
         return await self.user_service.get_user_by_name(
             name=name
         )
+    
+    
+    async def get_by_telegram_id(
+        self,
+        telegram_id: int
+    ) -> Optional[UsersBase]:
+        
+        return await self.user_service.get_user_by_telegram_id(
+            telegram_id=telegram_id
+        )
