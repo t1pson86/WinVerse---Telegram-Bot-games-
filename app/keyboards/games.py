@@ -6,7 +6,7 @@ class InlineKeyboardGames():
     def __init__(self):
 
         self.games_list = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text='🎲 Кубы', callback_data='dice_game_1'), InlineKeyboardButton(text='🎰 Рулетка', callback_data='dice_game')],
+            [InlineKeyboardButton(text='🎲 Кубы', callback_data='dice_game')],
             ])
         
 

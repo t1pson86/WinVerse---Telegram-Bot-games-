@@ -37,10 +37,14 @@ class PartiesRepository(BaseRepository[PartiesBase]):
  
     async def update(
         self, 
-        entity: PartiesBase
+        party_id: int,
+        new_status: str
     ) -> PartiesBase:
 
-        return 'ok'
+        return await self.partie_service.update_party_status(
+            party_id=party_id,
+            new_status=new_status
+        )
 
 
 
@@ -49,5 +53,50 @@ class PartiesRepository(BaseRepository[PartiesBase]):
         id: int
     ) -> None:
 
-        return 'ok'
+        return await self.partie_service.delete_party(
+            id=id
+        )
     
+
+    async def get_party_by_creator_id(
+        self,
+        creator_id: int
+    ):
+        
+        return await self.partie_service.get_party_creator_by_user_id(
+            creator_id=creator_id
+        )
+    
+
+    async def get_party_by_opponent_id(
+        self,
+        opponent_id: int
+    ):
+        
+        return await self.partie_service.get_party_opponent_by_user_id(
+            opponent_id=opponent_id
+        )
+
+
+    async def update_party_info_by_creator_id(
+        self,
+        creator_id: int,
+        new_value: int
+    ):
+        
+        return await self.partie_service.update_party_creator_info(
+            creator_id=creator_id,
+            new_value=new_value
+        )
+
+
+    async def update_party_info_by_opponent_id(
+        self,
+        opponent_id: int,
+        new_value: int
+    ):
+        
+        return await self.partie_service.update_party_opponent_info(
+            opponent_id=opponent_id,
+            new_value=new_value
+        )

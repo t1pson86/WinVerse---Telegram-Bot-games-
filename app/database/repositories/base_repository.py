@@ -28,7 +28,7 @@ class BaseRepository(ABC, Generic[T]):
     @abstractmethod
     async def update(
         self, 
-        entity: T
+        info: str
     ) -> T:
 
         raise NotImplementedError

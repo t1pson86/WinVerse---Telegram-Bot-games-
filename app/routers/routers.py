@@ -3,6 +3,7 @@ from aiogram import Router
 from .main_routers import parties, users, groups, welcome, games
 
 router = Router()
+router.message.filter()
 
 router.include_router(router=users.router)
 router.include_router(router=groups.router)

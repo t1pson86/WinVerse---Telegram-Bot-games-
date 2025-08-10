@@ -1,10 +1,8 @@
 from aiogram import Router, F
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import CallbackQuery, Message
-from aiogram.fsm.context import FSMContext
 
 from database import PartiesRepository, UsersRepository
-from states import PartiesCreate
 
 
 router = Router()
@@ -13,7 +11,6 @@ router = Router()
 @router.callback_query(F.data.startswith("accept_party_"))
 async def accept_party_handler(
     callback: CallbackQuery, 
-    state: FSMContext,
     session: AsyncSession
 ):
     await callback.answer()
@@ -33,10 +30,13 @@ async def accept_party_handler(
     if current_party is None:
         return await callback.message.answer('Данная партия уже закончена')
     
-    if current_party.status != 'waiting':
-        return
+    if current_party.status == 'accept':
+        return await callback.message.answer('Данная партия уже идет или была завершена.')
     
-    await state.set_state(PartiesCreate.creator_value)
+    update_status_party = await parties_repo.update(
+        party_id=int(party_info[2]),
+        new_status='accept'
+    )
 
     users_repo = UsersRepository(
         session=session
@@ -46,46 +46,138 @@ async def accept_party_handler(
         telegram_id=int(party_info[3])
     )
 
-    return await callback.message.answer(f'первый ход делает {current_user.telegram_username}')
+    return await callback.message.answer(f"""
+✅ <b>Игра принята!</b>
+                                         
+🎲 Игра в кости началась между:
+👤 {current_user.telegram_username}
+👤 @{callback.from_user.username}
 
+Кидайте кубик (отправьте emoji 🎲)!
+Кто выбросит большее число - победит!""",
 
-
-@router.message(PartiesCreate.creator_value)
-async def set_creator_value(
-    message: Message,
-    state: FSMContext
-):
-    
-    if not message.dice:
-        return await message.answer("НУЖНО КИНУТЬ КУБ")
-    
-    await state.update_data(
-        creator_value=int(message.dice.value)
+    parse_mode='HTML'
     )
 
-    await state.set_state(
-        PartiesCreate.opponent_value
-    )
 
-    return await message.answer('ТЕПЕРЬ ХОДИТ ОППОНЕНТ')
 
-    
-@router.message(PartiesCreate.opponent_value)
-async def set_opponent_value(
+@router.message(F.dice)
+async def set_value(
     message: Message,
-    state: FSMContext,
     session: AsyncSession
 ):
-    
-    if not message.dice:
-        return await message.answer("НУЖНО КИНУТЬ КУБ")
-    
-    await state.update_data(
-        opponent_value=int(message.dice.value)
+    parties_repo = PartiesRepository(
+        session=session
     )
 
-    data = await state.get_data()
+    current_party_by_creator = await parties_repo.get_party_by_creator_id(
+        creator_id=message.from_user.id
+    )
 
-    await state.clear()
+    user_repo = UsersRepository(
+        session=session
+    )
 
-    return await message.answer('Вы выйграли')
+    dice_data = message.dice.value
+
+    if current_party_by_creator is None:
+        
+        current_party_by_opponent = await parties_repo.get_party_by_opponent_id(
+            opponent_id=message.from_user.id
+        )
+
+        if current_party_by_opponent is None:
+            return
+       
+        if current_party_by_opponent.opponent_value:
+            return
+
+        update_opponent_data = await parties_repo.update_party_info_by_opponent_id(
+            opponent_id=message.from_user.id,
+            new_value=dice_data
+        )
+
+        info_opponent = await user_repo.get_by_telegram_id(
+            telegram_id=current_party_by_opponent.opponent_id
+        )
+
+        creator_name = await user_repo.get_by_telegram_id(
+            telegram_id=current_party_by_opponent.creator_id
+        )
+        
+        if current_party_by_opponent.creator_value:
+            del_party = await parties_repo.delete(
+                id=current_party_by_opponent.id
+            )
+            if dice_data == current_party_by_opponent.creator_value:
+                return await message.answer(f"""
+🤝 <b>Ничья!</b>
+                                    
+Оба игрока выбросили {dice_data} очков.
+Попробуйте сыграть ещё раз!""",
+parse_mode='HTML'
+    )
+            if dice_data > current_party_by_opponent.creator_value:
+                return await message.answer(f"Победил {info_opponent.telegram_username}")
+            if dice_data < current_party_by_opponent.creator_value:
+                return await message.answer(f"Победил {creator_name.telegram_username}")
+        
+        creator_username_info = await user_repo.get_by_telegram_id(
+            telegram_id=current_party_by_opponent.creator_id
+        )
+
+        return await message.answer(
+            f"""
+<b>⏳ Ожидаем ход от {creator_username_info.telegram_username}.</b>
+
+Вы выбросили <b>{dice_data}</b> очков.
+            """,
+            parse_mode='HTML'
+        )
+
+    if current_party_by_creator.creator_value:
+        return
+
+    if current_party_by_creator.status == 'waiting':
+        return
+
+    update_creator_data = await parties_repo.update_party_info_by_creator_id(
+        creator_id=message.from_user.id,
+        new_value=dice_data
+    )
+
+
+    info_creator = await user_repo.get_by_telegram_id(
+        telegram_id=current_party_by_creator.creator_id
+    )
+
+    opponent_name = await user_repo.get_by_telegram_id(
+        telegram_id=current_party_by_creator.opponent_id
+    )
+
+    if current_party_by_creator.opponent_value:
+        del_party = await parties_repo.delete(
+            id=current_party_by_creator.id
+        )
+        if dice_data == current_party_by_creator.opponent_value:
+            return await message.answer(f"""
+🤝 <b>Ничья!</b>
+                                    
+Оба игрока выбросили {dice_data} очков.
+Попробуйте сыграть ещё раз!""",
+parse_mode='HTML'
+    )
+        if dice_data > current_party_by_creator.opponent_value:
+            return await message.answer(f"Победил {info_creator.telegram_username}")
+        if dice_data < current_party_by_creator.opponent_value:
+            return await message.answer(f"Победил {opponent_name.telegram_username}")
+    
+    return await message.answer(
+            f"""
+<b>⏳ Ожидаем ход от {info_creator.telegram_username}.</b>
+
+Вы выбросили <b>{dice_data}</b> очков.
+            """,
+            parse_mode='HTML'
+        )
+    

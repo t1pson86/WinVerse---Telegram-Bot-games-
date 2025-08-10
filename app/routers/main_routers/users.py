@@ -15,6 +15,7 @@ async def reg(
     message: Message,
     session: AsyncSession
 ):
+
     user_repo = UsersRepository(
         session=session
     )
@@ -26,4 +27,9 @@ async def reg(
         )
     )
 
-    return await message.answer('ok')
+    if not new_user:
+        return await message.answer(f"""
+🎉 @{message.from_user.username} Регистрация прошла успешно!
+Теперь вам доступны все возможности бота.
+Можете создавать игры и участвовать в них!"""
+)

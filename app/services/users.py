@@ -36,7 +36,7 @@ class UsersService():
             await self.session.commit()
             await self.session.refresh(new_user)
 
-            return new_user
+            return False
 
         return current_user
     

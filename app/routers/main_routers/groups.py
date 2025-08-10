@@ -55,6 +55,6 @@ async def start_group(
     )
 
     return await message.answer(
-        'Начало игры. Чтобы выбрать режим ',
+        'Чтобы начать одну из этих игр, нужно нажать на кнопку и в выповшем меню посмотрите как нужно начать игру',
         reply_markup=inl_games.games_list
         )

@@ -6,6 +6,7 @@ from routers import router
 from database import db_conn, Base
 from middleware import DbSessionMiddleware
 
+
 bot = Bot(bot_settings.bot_token)
 
 dp = Dispatcher()

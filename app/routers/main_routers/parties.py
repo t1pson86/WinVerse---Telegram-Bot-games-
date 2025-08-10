@@ -13,7 +13,7 @@ router = Router()
 router.message.middleware(GroupOnlyMiddleware())
 
 
-@router.callback_query(F.data == 'dice_game_1')
+@router.callback_query(F.data == 'dice_game')
 async def dice_game(
     callback: CallbackQuery
 ):
@@ -36,24 +36,46 @@ async def create_dice_party(
     )
 
     if current_group is None:
-        return await message.answer('Чтобы пользоваться ботом администратор должен прописать /start_game')
+        return await message.answer(
+        """
+<b>⚠️ Группа не активирована!</b>
+Администратор должен сначала ввести команду /start_game
+        """,
+        
+        parse_mode='HTML'
+        )
 
     opponent_telegram_info = message.text.split()
 
     if len(opponent_telegram_info) != 2 or '@' not in message.text:
-        return await message.answer('Неправильный формат')
+        return await message.answer("""
+<b>❌ Неправильный формат команды!</b>
+Используйте: /dice @username
+Пример: /dice @user123""",
+
+    parse_mode='HTML'
+    )
+    
+    if opponent_telegram_info[1] == '@'+message.from_user.username:
+        return await message.answer('Вы не можете предложить игру самому себе.')
     
     user_repo = UsersRepository(
         session=session
     )
 
     if not await user_repo.get_by_name(name='@'+message.from_user.username):
-        return await message.answer('Введите команду /reg, чтобы можно было создать игру')
+        return await message.answer(f"""
+🔒 {'@'+message.from_user.username} Вы не зарегистрированы!
+Введите команду /reg для доступа к играм."""
+        )
 
     opponent_info_id = await user_repo.get_by_name(name=opponent_telegram_info[1])
 
     if not opponent_info_id:
-        return await message.answer(f'Пользователь {opponent_telegram_info[1]} Введите команду /reg, чтобы можно было создать игру')
+        return await message.answer(f"""
+👤 Пользователь {opponent_telegram_info[1]} не зарегистрирован!
+Попросите его ввести команду /reg."""
+        )
 
     parties_repo = PartiesRepository(
         session=session
@@ -61,7 +83,6 @@ async def create_dice_party(
 
     partie_entity = PartiesBase(
         game_type=opponent_telegram_info[1][1:],
-        status='accept',
         creator_id=message.from_user.id,
         opponent_id=opponent_info_id.telegram_id
     )
@@ -70,11 +91,19 @@ async def create_dice_party(
         entity=partie_entity
     )
 
-    return await message.answer(
-        f'Пользователь @{message.from_user.username} предложил игру пользователю {opponent_telegram_info[1]}',
-        reply_markup=inl_parties.get_party_menu(
-            party_id=current_party.id,
-            creator_id=message.from_user.id,
-            opponent_id=opponent_info_id.telegram_id
-            )
+    return await message.answer(f"""
+🎲 <b>Новая игра в кости!</b>  
+                                           
+👤 Игрок 1: @{message.from_user.username}
+👤 Игрок 2: {opponent_telegram_info[1]}
+
+{opponent_telegram_info[1]} должен принять вызов ниже 👇""",
+
+    reply_markup=inl_parties.get_party_menu(
+        party_id=current_party.id,
+        creator_id=message.from_user.id,
+        opponent_id=opponent_info_id.telegram_id
+        ),
+
+        parse_mode='HTML'
         )
