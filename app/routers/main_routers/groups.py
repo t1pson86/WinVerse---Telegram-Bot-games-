@@ -12,7 +12,7 @@ router = Router()
 router.message.middleware(GroupOnlyMiddleware())
 
 
-@router.message(Command('start_game'))
+@router.message(Command('start_games'))
 async def start_group(
     message: Message,
     bot: Bot,
@@ -24,7 +24,17 @@ async def start_group(
     current_admin = [admin.user.id for admin in chat_admins if admin.status == 'creator'][0]
 
     if message.from_user.id != current_admin:
-        return await message.answer('Может только админ')
+        return await message.answer("""
+⛔ <b>Ограничение прав</b>
+                                    
+Активировать бота может только:
+• Создатель группы
+• Администратор с полными правами
+                                    
+Это необходимо для безопасности группы.
+""",
+    parse_mode='HTML'                                
+    )
 
     user_repo = UsersRepository(
         session=session
@@ -54,7 +64,15 @@ async def start_group(
         entity=group_entity
     )
 
-    return await message.answer(
-        'Чтобы начать одну из этих игр, нужно нажать на кнопку и в выповшем меню посмотрите как нужно начать игру',
-        reply_markup=inl_games.games_list
-        )
+    return await message.answer("""
+🎮 <b>Игровой бот активирован!</b>
+Теперь в этой группе можно играть в различные игры.
+                                
+Доступные игры:
+🎲 Кости - /dice @username
+                                
+Выберите игру из меню ниже:
+""",
+    reply_markup=inl_games.games_list,
+    parse_mode='HTML'
+    )

@@ -100,3 +100,12 @@ class PartiesRepository(BaseRepository[PartiesBase]):
             opponent_id=opponent_id,
             new_value=new_value
         )
+    
+    async def get_by_username(
+        self,
+        username: str
+    ) -> Optional[PartiesBase]:
+        
+        return await self.partie_service.get_party_by_username(
+            username=username
+        )

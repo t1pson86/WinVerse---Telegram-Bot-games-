@@ -81,7 +81,7 @@ class PartiesService():
         current_party = result.scalars().first()
 
         return current_party
-    
+
 
     async def update_party_status(
         self,

@@ -5,9 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import UsersRepository
 from schemas import UsersBase
+from middleware import GroupOnlyMiddleware
 
 
 router = Router()
+router.message.middleware(GroupOnlyMiddleware())
 
 
 @router.message(Command('reg'))
@@ -29,7 +31,17 @@ async def reg(
 
     if not new_user:
         return await message.answer(f"""
-🎉 @{message.from_user.username} Регистрация прошла успешно!
+<b>🎉 @{message.from_user.username}</b>
+
+<b>Регистрация прошла успешно!</b>
 Теперь вам доступны все возможности бота.
-Можете создавать игры и участвовать в них!"""
+Можете создавать игры и участвовать в них!""",
+parse_mode='HTML'
+)
+    return await message.answer(f"""
+⚠️ @{message.from_user.username}
+
+<b>Вы уже зарегестрированы!</b>
+""",
+    parse_mode='HTML'
 )
