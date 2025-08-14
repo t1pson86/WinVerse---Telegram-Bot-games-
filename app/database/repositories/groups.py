@@ -2,8 +2,8 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base_repository import BaseRepository
-from schemas import GroupsBase
-from services import GroupsService
+from app.schemas.groups import GroupsBase
+from app.services.groups import GroupsService
 
 class GroupsRepository(BaseRepository[GroupsBase]):
 

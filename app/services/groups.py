@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from schemas import GroupsBase
-from database.models import GroupsModel
+from app.schemas.groups import GroupsBase
+from app.database.models.groups import GroupsModel
 
 
 class GroupsService():

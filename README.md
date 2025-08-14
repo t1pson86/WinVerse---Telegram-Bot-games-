@@ -64,3 +64,5 @@ python main.py
 This project is distributed under the MIT license - see LICENSE file for details.
 
  Made with ❤️ for Telegram community. Join the development!
+
+ 

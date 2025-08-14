@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from .base_repository import BaseRepository
-from schemas import PartiesBase
-from services import PartiesService
+from app.schemas.parties import PartiesBase
+from app.services.parties import PartiesService
 
 class PartiesRepository(BaseRepository[PartiesBase]):
 

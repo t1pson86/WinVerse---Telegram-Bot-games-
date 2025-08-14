@@ -2,8 +2,8 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
-from database.models import PartiesModel
-from schemas import PartiesBase
+from app.database.models.parties import PartiesModel
+from app.schemas.parties import PartiesBase
 
 class PartiesService():
 

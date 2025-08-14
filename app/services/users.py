@@ -2,8 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
-from schemas import UsersBase
-from database.models import UsersModel
+from app.schemas.users import UsersBase
+from app.database.models.users import UsersModel
 
 
 class UsersService():

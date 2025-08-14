@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from .base_repository import BaseRepository
-from schemas import UsersBase
-from services import UsersService
+from app.schemas.users import UsersBase
+from app.services.users import UsersService
 
 class UsersRepository(BaseRepository[UsersBase]):
 
